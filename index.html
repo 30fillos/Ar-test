@@ -2,25 +2,35 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>MJ AR Debug</title>
+    <title>MJ AR Test</title>
     <script src="https://cdn.jsdelivr.net/npm/aframe/dist/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar/dist/mindar-image.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-mindar/dist/aframe-mindar-image.prod.js"></script>
     <style>
       body { margin: 0; overflow: hidden; }
-      #startButton { position: absolute; top: 20px; left: 20px; z-index: 10; padding: 10px; background: red; color: white; }
+      #startBtn {
+        position: absolute;
+        top: 20px; left: 20px;
+        z-index: 10;
+        padding: 12px 18px;
+        background: #d00;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+      }
     </style>
   </head>
   <body>
-    <button id="startButton">Start AR</button>
+    <button id="startBtn">Enable AR</button>
+
     <a-scene
       id="scene"
       mindar-image="imageTargetSrc: ./targets.mind;"
       embedded
       vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: true"
-      style="display: none">
-      
+      style="display:none">
+
       <a-assets>
         <img id="heart" src="heart.png" />
       </a-assets>
@@ -33,18 +43,33 @@
     </a-scene>
 
     <script>
-      document.getElementById('startButton').onclick = async () => {
-        // Safari iOS 13+ needs explicit request
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      const btn = document.getElementById("startBtn");
+      const scene = document.getElementById("scene");
+
+      btn.addEventListener("click", async () => {
+        // Ζητάμε άδεια για Motion & Orientation στο iOS
+        if (typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function") {
           try {
-            await DeviceOrientationEvent.requestPermission();
-          } catch(e) {
-            alert("Orientation permission error: " + e);
+            const response = await DeviceOrientationEvent.requestPermission();
+            console.log("Orientation permission:", response);
+          } catch (err) {
+            alert("Motion permission error: " + err);
           }
         }
-        document.getElementById('startButton').style.display = 'none';
-        document.getElementById('scene').style.display = 'block';
-      }
+
+        // Ζητάμε άδεια για Camera μέσω A-Frame
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true });
+          console.log("Camera permission granted.");
+        } catch (err) {
+          alert("Camera error: " + err);
+        }
+
+        // Κρύβουμε το κουμπί, δείχνουμε τη σκηνή
+        btn.style.display = "none";
+        scene.style.display = "block";
+      });
     </script>
   </body>
 </html>
