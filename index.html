@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Michael Jordan AR</title>
+    <title>MindAR Test με πίσω κάμερα</title>
 
-    <!-- A-Frame & MindAR -->
+    <!-- A-Frame + MindAR -->
     <script src="https://cdn.jsdelivr.net/npm/aframe/dist/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar/dist/mindar-image.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-mindar/dist/aframe-mindar-image.prod.js"></script>
@@ -18,23 +18,40 @@
       mindar-image="imageTargetSrc: ./targets.mind;"
       embedded
       color-space="sRGB"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: true"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      video="facingMode: environment"
-    >
-      <!-- Assets -->
+      id="my-scene">
+      
       <a-assets>
         <img id="heart" src="heart.png" />
       </a-assets>
 
-      <!-- Camera -->
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Όταν βρει την εικόνα target -->
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-image src="#heart" position="0.5 0 0" scale="0.5 0.5 0.5"></a-image>
+        <a-image src="#heart" position="0 0 0" scale="0.5 0.5 0.5"></a-image>
       </a-entity>
     </a-scene>
+
+    <script>
+    (async () => {
+      try {
+        // Ζητάμε ρητά την πίσω κάμερα
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        });
+
+        // Παίρνουμε το video element που χρησιμοποιεί το MindAR
+        const sceneEl = document.querySelector("#my-scene");
+        sceneEl.addEventListener("arReady", () => {
+          const mindarComp = sceneEl.components["mindar-image"];
+          if (mindarComp && mindarComp.video) {
+            mindarComp.video.srcObject = stream;
+          }
+        });
+      } catch (err) {
+        console.error("Camera access error:", err);
+        alert("Δεν μπόρεσα να ανοίξω πίσω κάμερα: " + err.message);
+      }
+    })();
+    </script>
   </body>
 </html>
